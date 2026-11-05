@@ -1,19 +1,6 @@
 /* ============================================================================
    mypet  -  SQL Server database
-   FILE 1 of 2 : 01_create_mypet_database.sql
-
-   Builds the whole database in one run (press F5 in SSMS):
-     PART A  Database            CREATE / DROP DATABASE                (Day 1)
-     PART B  Tables              data types + constraints + relations  (Day 1 + Day 2)
-     PART C  Indexes             clustered / non-clustered             (Day 2)
-     PART D  Functions           scalar + table-valued                 (Day 2)
-     PART E  Views                                                     (Day 2)
-     PART F  Stored procedures                                         (Day 2)
-     PART G  Triggers                                                  (Day 2)
-     PART H  Sample data         INSERT                                (Day 1)
-
-   Running it again deletes MyPetDB and builds it from zero.
-   The practice queries for every topic are in 02_practice_queries.sql.
+   
    ============================================================================ */
 
 SET ANSI_NULLS ON;
@@ -22,12 +9,11 @@ GO
 
 
 /* ============================================================================
-   PART A - DATABASE                                           (Day 1)
+   PART A - DATABASE                                          
    ============================================================================ */
 USE master;
 GO
 
--- DROP DATABASE: remove the old copy so the script can be run again
 IF DB_ID(N'MyPetDB') IS NOT NULL
 BEGIN
     ALTER DATABASE MyPetDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;   -- close open connections first
@@ -44,32 +30,7 @@ GO
 
 
 /* ============================================================================
-   PART B - TABLES                                             (Day 1 + Day 2)
-
-   Data types used
-     INT / SMALLINT / TINYINT   whole numbers (ids, stock, hours)
-     DECIMAL(p,s)               money and ratings (exact; never FLOAT for money)
-     NVARCHAR(n)                text that can hold Arabic (N = Unicode)
-     VARCHAR(n)                 English codes, e-mails, phone numbers
-     NVARCHAR(MAX)              long text (blog article body)
-     CHAR(n)                    fixed length (last 4 card digits, day code)
-     BIT                        yes / no  (1 / 0)
-     DATE, TIME(0), DATETIME2   dates and times
-
-   Constraints used
-     PRIMARY KEY   one row = one id (also creates the CLUSTERED index)
-     NOT NULL      the value is required
-     UNIQUE        no two rows can share the value
-     CHECK         the value must pass a rule
-     DEFAULT       value used when none is given
-     FOREIGN KEY   the value must exist in another table (this is a RELATION)
-
-   Relations (Day 2)
-     one-to-one    Users      - Providers      (UNIQUE foreign key Providers.UserID)
-     one-to-many   Governorates - Areas, Users - Pets, Providers - Bookings, ...
-     many-to-many  Orders     - Products       (junction table OrderItems)
-                   Users      - Products       (junction table Wishlist)
-                   Users      - ShelterPets    (junction table AdoptionRequests)
+   
    ============================================================================ */
 
 /* ---------- 1. Governorates : Jordan's 12 governorates ---------- */
