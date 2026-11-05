@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mypet - ER diagram (MyPetDB)</title>
+<style>
+  :root { --ink:#1f2430; --muted:#5b6475; --line:#e3e6ec; --bg:#f7f8fa; --accent:#2f6fde; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding:20px 28px 12px; background:#fff; border-bottom:1px solid var(--line); }
+  h1 { margin:0 0 4px; font-size:22px; }
+  .sub { margin:0; color:var(--muted); font-size:14px; }
+  .bar { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:10px 28px; background:#fff; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); }
+  .bar code { background:#eef1f6; padding:1px 6px; border-radius:4px; color:var(--ink); }
+  .bar .spacer { flex:1; }
+  button { font:inherit; font-size:13px; padding:6px 12px; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; color:var(--ink); }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  #wrap { overflow:auto; padding:24px; }
+  #wrap.fit svg { width:100% !important; max-width:100% !important; height:auto; }
+  .mermaid { margin:0; background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px; display:inline-block; min-width:100%; }
+  .mermaid.solo { min-width:0; }
+  section { padding:0 28px 32px; }
+  h2 { font-size:17px; margin:8px 0 10px; }
+  table { border-collapse:collapse; background:#fff; font-size:14px; width:100%; max-width:1100px; }
+  th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#eef1f6; font-weight:600; }
+  td code { background:#f2f4f8; padding:1px 5px; border-radius:4px; font-size:13px; }
+  .tag { display:inline-block; font-size:12px; font-weight:600; padding:1px 8px; border-radius:10px; }
+  .t11 { background:#e8f1ff; color:#1c4fa8; } .t1m { background:#e9f7ee; color:#1d6b3a; } .tmm { background:#fdf0e3; color:#8a4b0c; } .t0 { background:#eee; color:#555; }
+</style>
+</head>
+<body>
+<header>
+  <h1>mypet &mdash; ER diagram</h1>
+  <p class="sub">Database <strong>MyPetDB</strong> on SQL Server &middot; 18 tables &middot; built by 01_create_mypet_database.sql</p>
+</header>
+<div class="bar">
+  <span><code>||</code> exactly one</span><span><code>|o</code> zero or one</span><span><code>|{</code> one or more</span><span><code>o{</code> zero or more</span>
+  <span><strong>PK</strong> primary key &middot; <strong>FK</strong> foreign key &middot; <strong>UK</strong> unique</span>
+  <span class="spacer"></span>
+  <button id="fit" type="button">Actual size</button>
+  <button id="svg" type="button" disabled>Download SVG</button>
+</div>
+<div id="wrap" class="fit">
+<pre class="mermaid">
+erDiagram
+    Governorates ||--o{ Areas            : "has"
+    Governorates |o--o{ Users            : "home of"
+    Governorates ||--o{ Orders           : "delivered to"
+    Areas        ||--o{ Providers        : "located in"
+    Users        ||--o| Providers        : "logs in as (1:1)"
+    Users        ||--o{ Pets             : "owns"
+    Users        ||--o{ Orders           : "places"
+    Users        ||--o{ Reviews          : "writes"
+    Users        ||--o{ AdoptionRequests : "sends"
+    Users        ||--o{ Wishlist         : "saves"
+    Providers    ||--o{ ProviderHours    : "opens"
+    Providers    ||--o{ ProviderDaysOff  : "closes on"
+    Providers    ||--o{ Bookings         : "receives"
+    Providers    ||--o{ ShelterPets      : "shelters"
+    Providers    |o--o{ Reviews          : "is rated in"
+    Pets         ||--o{ Bookings         : "is booked in"
+    Bookings     ||--o{ BookingStatusLog : "history"
+    Bookings     |o--o| Reviews          : "rated by"
+    ShelterPets  ||--o{ AdoptionRequests : "requested in"
+    Categories   ||--o{ Products         : "groups"
+    Orders       ||--|{ OrderItems       : "contains"
+    Products     ||--o{ OrderItems       : "sold in"
+    Products     ||--o{ Wishlist         : "saved in"
+
+    Governorates {
+        int GovernorateID PK
+        nvarchar Name UK
+    }
+    Areas {
+        int AreaID PK
+        int GovernorateID FK
+        nvarchar Name
+    }
+    Users {
+        int UserID PK
+        nvarchar FullName
+        varchar Email UK
+        varchar Phone
+        varchar PasswordHash
+        varchar Role "Owner | Provider | Admin"
+        varchar Status "Active | Invited | Suspended"
+        bit MustChangePassword
+        int GovernorateID FK
+        datetime2 CreatedAt
+    }
+    Providers {
+        int ProviderID PK
+        int UserID FK,UK "UNIQUE = one-to-one"
+        varchar ProviderType "Clinic | DayCare | Trainer | Walker | Shelter"
+        nvarchar BusinessName
+        int AreaID FK
+        varchar Phone
+        nvarchar About
+        decimal Price
+        nvarchar Specialty
+        tinyint YearsExperience
+        tinyint SlotMinutes
+        tinyint MinNoticeHours
+        decimal AvgRating "denormalized"
+        int ReviewCount "denormalized"
+    }
+    ProviderHours {
+        int ProviderID PK,FK
+        char DayCode PK "Sat ... Fri"
+        bit IsOpen
+        time OpenTime
+        time CloseTime
+    }
+    ProviderDaysOff {
+        int DayOffID PK
+        int ProviderID FK
+        date OffDate
+        nvarchar Reason
+    }
+    Pets {
+        int PetID PK
+        int OwnerID FK
+        nvarchar Name
+        varchar PetType
+        decimal AgeYears
+    }
+    Bookings {
+        int BookingID PK
+        int PetID FK
+        int ProviderID FK
+        date BookingDate
+        time StartTime
+        tinyint Hours "day care"
+        smallint DurationMinutes
+        time EndTime "computed"
+        nvarchar SessionType
+        nvarchar Reason
+        nvarchar PickupAddress
+        decimal TotalPrice
+        char CardLast4
+        varchar Status "Confirmed | Completed | Cancelled"
+        varchar PayoutStatus "Due | Paid"
+    }
+    BookingStatusLog {
+        int LogID PK
+        int BookingID FK
+        varchar OldStatus
+        varchar NewStatus
+        datetime2 ChangedAt
+    }
+    ShelterPets {
+        int ShelterPetID PK
+        int ShelterID FK
+        nvarchar Name
+        varchar PetType
+        nvarchar Breed
+        varchar Gender
+        smallint AgeMonths
+        varchar Status "Available | Pending | Adopted"
+    }
+    AdoptionRequests {
+        int RequestID PK
+        int UserID FK
+        int ShelterPetID FK
+        nvarchar Message
+        datetime2 RequestedAt
+        datetime2 VisitAt
+        varchar Status "Pending | Approved | Declined"
+    }
+    Categories {
+        int CategoryID PK
+        nvarchar Name UK
+    }
+    Products {
+        int ProductID PK
+        int CategoryID FK
+        nvarchar Name UK
+        varchar PetType
+        decimal Price
+        int Stock
+        varchar Status
+    }
+    Orders {
+        int OrderID PK
+        int UserID FK
+        datetime2 OrderDate
+        nvarchar CustomerName
+        nvarchar Address
+        int GovernorateID FK
+        varchar PaymentMethod "Card | Cash"
+        varchar PromoCode
+        decimal Subtotal
+        decimal Discount
+        decimal Total "computed"
+        varchar Status
+    }
+    OrderItems {
+        int OrderID PK,FK
+        int ProductID PK,FK
+        smallint Quantity
+        decimal UnitPrice
+        decimal LineTotal "computed"
+    }
+    Wishlist {
+        int UserID PK,FK
+        int ProductID PK,FK
+        datetime2 AddedAt
+    }
+    Reviews {
+        int ReviewID PK
+        int UserID FK
+        int ProviderID FK "NULL for Shop / Website"
+        int BookingID FK
+        varchar ServiceType
+        tinyint Rating "1 - 5"
+        nvarchar Message
+        varchar Status "Pending | Published | Hidden"
+    }
+</pre>
+</div>
+<section>
+  <h2>Standalone table (no relations)</h2>
+  <p class="sub" style="margin:0 0 10px">The blog table is not linked to any other table, so it is drawn on its own.</p>
+<pre class="mermaid solo">
+erDiagram
+    Articles {
+        int ArticleID PK
+        nvarchar Title UK
+        varchar Slug UK
+        nvarchar Category
+        nvarchar AuthorName
+        nvarchar Content
+        varchar Status "Draft | Published"
+        date PublishedAt
+    }
+</pre>
+</section>
+<section>
+  <h2>Relationships</h2>
+  <table>
+    <thead><tr><th>Relation</th><th>Type</th><th>How it is built</th></tr></thead>
+    <tbody>
+      <tr><td>Users &ndash; Providers</td><td><span class="tag t11">one-to-one</span></td><td><code>Providers.UserID</code> is a FOREIGN KEY and UNIQUE</td></tr>
+      <tr><td>Bookings &ndash; Reviews</td><td><span class="tag t11">one-to-one (optional)</span></td><td>filtered UNIQUE index on <code>Reviews.BookingID</code></td></tr>
+      <tr><td>Governorates &ndash; Areas</td><td><span class="tag t1m">one-to-many</span></td><td><code>Areas.GovernorateID</code></td></tr>
+      <tr><td>Areas &ndash; Providers</td><td><span class="tag t1m">one-to-many</span></td><td><code>Providers.AreaID</code></td></tr>
+      <tr><td>Users &ndash; Pets</td><td><span class="tag t1m">one-to-many</span></td><td><code>Pets.OwnerID</code></td></tr>
+      <tr><td>Pets &ndash; Bookings</td><td><span class="tag t1m">one-to-many</span></td><td><code>Bookings.PetID</code></td></tr>
+      <tr><td>Providers &ndash; Bookings</td><td><span class="tag t1m">one-to-many</span></td><td><code>Bookings.ProviderID</code></td></tr>
+      <tr><td>Providers &ndash; ProviderHours / ProviderDaysOff</td><td><span class="tag t1m">one-to-many</span></td><td><code>ProviderID</code></td></tr>
+      <tr><td>Providers (shelters) &ndash; ShelterPets</td><td><span class="tag t1m">one-to-many</span></td><td><code>ShelterPets.ShelterID</code></td></tr>
+      <tr><td>Bookings &ndash; BookingStatusLog</td><td><span class="tag t1m">one-to-many</span></td><td><code>BookingStatusLog.BookingID</code> (filled by a trigger)</td></tr>
+      <tr><td>Categories &ndash; Products</td><td><span class="tag t1m">one-to-many</span></td><td><code>Products.CategoryID</code></td></tr>
+      <tr><td>Users &ndash; Orders, Governorates &ndash; Orders</td><td><span class="tag t1m">one-to-many</span></td><td><code>Orders.UserID</code>, <code>Orders.GovernorateID</code></td></tr>
+      <tr><td>Users &ndash; Reviews, Providers &ndash; Reviews</td><td><span class="tag t1m">one-to-many</span></td><td><code>Reviews.UserID</code>, <code>Reviews.ProviderID</code></td></tr>
+      <tr><td>Orders &ndash; Products</td><td><span class="tag tmm">many-to-many</span></td><td>junction table <code>OrderItems</code> (PK = OrderID + ProductID)</td></tr>
+      <tr><td>Users &ndash; Products</td><td><span class="tag tmm">many-to-many</span></td><td>junction table <code>Wishlist</code> (PK = UserID + ProductID)</td></tr>
+      <tr><td>Users &ndash; ShelterPets</td><td><span class="tag tmm">many-to-many</span></td><td>junction table <code>AdoptionRequests</code> (UNIQUE UserID + ShelterPetID)</td></tr>
+      <tr><td>Articles</td><td><span class="tag t0">standalone</span></td><td>no relations</td></tr>
+    </tbody>
+  </table>
+</section>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'strict', er: { useMaxWidth: false } });
+  await mermaid.run({ querySelector: '.mermaid' });
+  document.body.dataset.rendered = '1';
+
+  const wrap = document.getElementById('wrap'), fit = document.getElementById('fit'), dl = document.getElementById('svg');
+  fit.addEventListener('click', () => {
+    const fitted = wrap.classList.toggle('fit');
+    fit.textContent = fitted ? 'Actual size' : 'Fit to width';
+  });
+  dl.disabled = false;
+  dl.addEventListener('click', () => {
+    const svg = document.querySelector('#wrap svg');
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'mypet-ER-diagram.svg' });
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
+</body>
+</html>
